@@ -12,6 +12,62 @@ class _AuthPageState extends State<AuthPage> {
   String _passwordValue;
   bool _acceptTerms = false;
 
+  DecorationImage _buildBackgroundImage() {
+    return DecorationImage(
+      fit: BoxFit.cover,
+      colorFilter:
+          ColorFilter.mode(Colors.black.withOpacity(0.4), BlendMode.dstATop),
+      image: AssetImage('assets/alotDonut.jpg'),
+    );
+  }
+
+  Widget _buildEmailTextField() {
+    return TextField(
+      decoration: InputDecoration(
+        labelText: 'Email',
+        filled: true,
+        fillColor: Colors.white70,
+      ),
+      onChanged: (String value) {
+        setState(() {
+          _emailValue = value;
+        });
+      },
+    );
+  }
+
+  Widget _buildPasswordTextFeild() {
+    return TextField(
+      obscureText: true,
+      decoration: InputDecoration(
+        labelText: 'Password',
+        filled: true,
+        fillColor: Colors.white70,
+      ),
+      onChanged: (String value) {
+        setState(() {
+          _passwordValue = value;
+        });
+      },
+    );
+  }
+
+  Widget _buildAcceptSwitch() {
+    return SwitchListTile(
+      value: _acceptTerms,
+      onChanged: (bool value) {
+        setState(() {
+          _acceptTerms = value;
+        });
+      },
+      title: Text('Accept Terms'),
+    );
+  }
+
+  void _submitForm() {
+    Navigator.pushReplacementNamed(context, '/products');
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -20,63 +76,23 @@ class _AuthPageState extends State<AuthPage> {
         ),
         body: Container(
           decoration: BoxDecoration(
-            image: DecorationImage(
-              fit: BoxFit.cover,
-              colorFilter: ColorFilter.mode(
-                  Colors.black.withOpacity(0.4), BlendMode.dstATop),
-              image: AssetImage('assets/alotDonut.jpg'),
-            ),
+            image: _buildBackgroundImage(),
           ),
           padding: EdgeInsets.all(10.0),
           child: Center(
             child: SingleChildScrollView(
               child: Column(
                 children: <Widget>[
-                  TextField(
-                    decoration: InputDecoration(
-                      labelText: 'Email',
-                      filled: true,
-                      fillColor: Colors.white70,
-                    ),
-                    onChanged: (String value) {
-                      setState(() {
-                        _emailValue = value;
-                      });
-                    },
-                  ),
-                  SizedBox(
-                    height: 7.0,
-                  ),
-                  TextField(
-                    obscureText: true,
-                    decoration: InputDecoration(
-                      labelText: 'Password',
-                      filled: true,
-                      fillColor: Colors.white70,
-                    ),
-                    onChanged: (String value) {
-                      setState(() {
-                        _passwordValue = value;
-                      });
-                    },
-                  ),
-                  SwitchListTile(
-                    value: _acceptTerms,
-                    onChanged: (bool value) {
-                      setState(() {
-                        _acceptTerms = value;
-                      });
-                    },
-                    title: Text('Accept Terms'),
-                  ),
+                  _buildEmailTextField(),
+                  SizedBox(height: 8.0),
+                  _buildPasswordTextFeild(),
+                  _buildAcceptSwitch(),
                   SizedBox(height: 10.0),
                   RaisedButton(
                     color: Theme.of(context).primaryColor,
                     textColor: Colors.white,
                     child: Text('LOGIN'),
-                    onPressed: () {
-                      Navigator.pushReplacementNamed(context, '/products');
-                    },
+                    onPressed: _submitForm,
                   ),
                 ],
               ),
