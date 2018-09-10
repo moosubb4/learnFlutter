@@ -8,9 +8,13 @@ class AuthPage extends StatefulWidget {
 }
 
 class _AuthPageState extends State<AuthPage> {
-  String _emailValue;
-  String _passwordValue;
-  bool _acceptTerms = false;
+  final Map<String, dynamic> _formData = {
+    'email': null,
+    'password': null,
+    'acceptterms': false
+  };
+
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   DecorationImage _buildBackgroundImage() {
     return DecorationImage(
@@ -22,42 +26,50 @@ class _AuthPageState extends State<AuthPage> {
   }
 
   Widget _buildEmailTextField() {
-    return TextField(
+    return TextFormField(
       decoration: InputDecoration(
         labelText: 'Email',
         filled: true,
         fillColor: Colors.white70,
       ),
-      onChanged: (String value) {
-        setState(() {
-          _emailValue = value;
-        });
+      onSaved: (String value) {
+        _formData['email'] = value;
+      },
+      validator: (String value) {
+        if (value.isEmpty ||
+            !RegExp(r"[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?")
+                .hasMatch(value)) {
+          return 'ใส่ให้เต็มเลยนะ!!ใส่อีเมลให้ถูก';
+        }
       },
     );
   }
 
   Widget _buildPasswordTextFeild() {
-    return TextField(
+    return TextFormField(
       obscureText: true,
       decoration: InputDecoration(
         labelText: 'Password',
         filled: true,
         fillColor: Colors.white70,
       ),
-      onChanged: (String value) {
-        setState(() {
-          _passwordValue = value;
-        });
+      onSaved: (String value) {
+        _formData['password'] = value;
+      },
+      validator: (String value) {
+        if (value.isEmpty || value.length < 6) {
+          return 'ใส่ให้ถูกเซ่!!';
+        }
       },
     );
   }
 
   Widget _buildAcceptSwitch() {
     return SwitchListTile(
-      value: _acceptTerms,
+      value: _formData['acceptterms'],
       onChanged: (bool value) {
         setState(() {
-          _acceptTerms = value;
+          _formData['acceptterms'] = value;
         });
       },
       title: Text('Accept Terms'),
@@ -65,6 +77,11 @@ class _AuthPageState extends State<AuthPage> {
   }
 
   void _submitForm() {
+    if (!_formKey.currentState.validate() || !_formData['acceptterms']) {
+      return;
+    }
+    _formKey.currentState.save();
+    print(_formData);
     Navigator.pushReplacementNamed(context, '/products');
   }
 
@@ -86,20 +103,23 @@ class _AuthPageState extends State<AuthPage> {
             child: SingleChildScrollView(
               child: Container(
                 width: targetWidth,
-                child: Column(
-                  children: <Widget>[
-                    _buildEmailTextField(),
-                    SizedBox(height: 8.0),
-                    _buildPasswordTextFeild(),
-                    _buildAcceptSwitch(),
-                    SizedBox(height: 10.0),
-                    RaisedButton(
-                      // color: Theme.of(context).primaryColor,
-                      textColor: Colors.white,
-                      child: Text('LOGIN'),
-                      onPressed: _submitForm,
-                    ),
-                  ],
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    children: <Widget>[
+                      _buildEmailTextField(),
+                      SizedBox(height: 8.0),
+                      _buildPasswordTextFeild(),
+                      _buildAcceptSwitch(),
+                      SizedBox(height: 10.0),
+                      RaisedButton(
+                        // color: Theme.of(context).primaryColor,
+                        textColor: Colors.white,
+                        child: Text('LOGIN'),
+                        onPressed: _submitForm,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
