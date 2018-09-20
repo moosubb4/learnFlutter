@@ -1,4 +1,6 @@
 import 'package:scoped_model/scoped_model.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 import '../models/user.dart';
 import '../models/product.dart';
@@ -7,20 +9,32 @@ class ConnectedProductsModel extends Model {
   List<Product> _products = [];
   User _authenticateUser;
   int _selProductIndex;
+  String url = 'https://fultter-product.firebaseio.com/products.json';
 
   void addProduct(
       String title, String description, String image, double price) {
-    final Product newProduct = Product(
-      title: title,
-      description: description,
-      image: image,
-      price: price,
-      userEmail: _authenticateUser.email,
-      userId: _authenticateUser.id,
-    );
-    _products.add(newProduct);
-    _selProductIndex = null;
-    notifyListeners();
+    final Map<String, dynamic> productData = {
+      'title': title,
+      'description': description,
+      'image':
+          'https://banner2.kisspng.com/20180324/osq/kisspng-hamburger-bacon-sushi-pizza-cheeseburger-burger-king-5ab6e5746c0b92.1832730815219357324426.jpg',
+      'price': price,
+    };
+
+    http.post(url, body: jsonEncode(productData)).then((http.Response res) {
+      final Map<String, dynamic> resData = json.decode(res.body);
+      final Product newProduct = Product(
+        id: resData['name'],
+        title: title,
+        description: description,
+        image: image,
+        price: price,
+        userEmail: _authenticateUser.email,
+        userId: _authenticateUser.id,
+      );
+      _products.add(newProduct);
+      notifyListeners();
+    });
   }
 
   // void selectProduct(String productId) {
@@ -77,6 +91,13 @@ class ProductsModel extends ConnectedProductsModel {
     _products.removeAt(selectedProductIndex);
     // _selProductIndex = null;
     notifyListeners();
+  }
+
+  void fetchProducts() {
+    http.get(url).then((http.Response res) {
+      final resData = json.decode(res.body);
+      print(resData);
+    });
   }
 
   void toggleProductFavoriteStatus() {
