@@ -58,7 +58,7 @@ class _MyAppState extends State<MyApp> {
         },
         onUnknownRoute: (RouteSettings setting) {
           return MaterialPageRoute(
-            builder: (BuildContext context) => ProductsPage(),
+            builder: (BuildContext context) => ProductsPage(model),
           );
         },
       ),

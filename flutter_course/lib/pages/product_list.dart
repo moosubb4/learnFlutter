@@ -50,7 +50,8 @@ class ProductListPage extends StatelessWidget {
                       leading: CircleAvatar(
                         backgroundColor: Colors.black,
                         backgroundImage:
-                            AssetImage(model.allProducts[index].image),
+                            // AssetImage(model.allProducts[index].image),
+                            NetworkImage(model.allProducts[index].image),
                       ),
                       title: Text(model.allProducts[index].title),
                       subtitle: Text(

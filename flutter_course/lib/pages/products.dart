@@ -10,11 +10,18 @@ class ProductsPage extends StatefulWidget {
 
   @override
   State<StatefulWidget> createState() {
-    return _ProductPageState();
+    return _ProductsPageState();
   }
 }
 
-class _ProductPageState extends State<ProductsPage> {
+class _ProductsPageState extends State<ProductsPage> {
+
+  @override
+  initState() {
+    widget.model.fetchProducts();
+    super.initState();
+  }
+
   Widget _buildSideDrawer(BuildContext context) {
     return Drawer(
       child: Column(

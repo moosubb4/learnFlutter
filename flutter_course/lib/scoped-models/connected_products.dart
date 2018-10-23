@@ -10,7 +10,6 @@ class ConnectedProductsModel extends Model {
   User _authenticateUser;
   int _selProductIndex;
   String url = 'https://fultter-product.firebaseio.com/products.json';
-
   void addProduct(
       String title, String description, String image, double price) {
     final Map<String, dynamic> productData = {
@@ -19,6 +18,8 @@ class ConnectedProductsModel extends Model {
       'image':
           'https://banner2.kisspng.com/20180324/osq/kisspng-hamburger-bacon-sushi-pizza-cheeseburger-burger-king-5ab6e5746c0b92.1832730815219357324426.jpg',
       'price': price,
+      'userEmail': _authenticateUser.email,
+      'userId': _authenticateUser.id
     };
 
     http.post(url, body: jsonEncode(productData)).then((http.Response res) {
@@ -95,8 +96,25 @@ class ProductsModel extends ConnectedProductsModel {
 
   void fetchProducts() {
     http.get(url).then((http.Response res) {
-      final resData = json.decode(res.body);
-      print(resData);
+      final List<Product> fecthedProductList = [];
+
+      final Map<String, dynamic> productListData = json.decode(res.body);
+
+      print(productListData);
+
+      productListData.forEach((String productId, dynamic productData) {
+        final Product product = Product(
+            id: productId,
+            title: productData['title'],
+            description: productData['description'],
+            image: productData['image'],
+            price: productData['price'],
+            userEmail: productData['userEmail'],
+            userId: productData['userId']);
+        fecthedProductList.add(product);
+      });
+      _products = fecthedProductList;
+      notifyListeners();
     });
   }
 
