@@ -1,6 +1,7 @@
 import 'package:scoped_model/scoped_model.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'dart:async';
 
 import '../models/user.dart';
 import '../models/product.dart';
@@ -9,20 +10,27 @@ class ConnectedProductsModel extends Model {
   List<Product> _products = [];
   User _authenticateUser;
   int _selProductIndex;
-  String url = 'https://fultter-product.firebaseio.com/products.json';
-  void addProduct(
+  bool _isLoading = false;
+  String _url = 'https://fultter-product.firebaseio.com/products.json';
+  String _imgBurger =
+      'https://banner2.kisspng.com/20180324/osq/kisspng-hamburger-bacon-sushi-pizza-cheeseburger-burger-king-5ab6e5746c0b92.1832730815219357324426.jpg';
+
+  Future<Null> addProduct(
       String title, String description, String image, double price) {
+    _isLoading = true;
+    notifyListeners();
     final Map<String, dynamic> productData = {
       'title': title,
       'description': description,
-      'image':
-          'https://banner2.kisspng.com/20180324/osq/kisspng-hamburger-bacon-sushi-pizza-cheeseburger-burger-king-5ab6e5746c0b92.1832730815219357324426.jpg',
+      'image': _imgBurger,
       'price': price,
       'userEmail': _authenticateUser.email,
       'userId': _authenticateUser.id
     };
 
-    http.post(url, body: jsonEncode(productData)).then((http.Response res) {
+    return http
+        .post(_url, body: jsonEncode(productData))
+        .then((http.Response res) {
       final Map<String, dynamic> resData = json.decode(res.body);
       final Product newProduct = Product(
         id: resData['name'],
@@ -34,6 +42,7 @@ class ConnectedProductsModel extends Model {
         userId: _authenticateUser.id,
       );
       _products.add(newProduct);
+      _isLoading = false;
       notifyListeners();
     });
   }
@@ -73,34 +82,70 @@ class ProductsModel extends ConnectedProductsModel {
     return _showFavorite;
   }
 
-  void updateProduct(
+  Future<Null> updateProduct(
       String title, String description, String image, double price) {
-    final Product updateProduct = Product(
-      title: title,
-      description: description,
-      image: image,
-      price: price,
-      userEmail: selectedProduct.userEmail,
-      userId: selectedProduct.userId,
-    );
-    _products[selectedProductIndex] = updateProduct;
-    // _selProductIndex = null;
+    _isLoading = true;
     notifyListeners();
+
+    final Map<String, dynamic> updateData = {
+      'title': title,
+      'description': description,
+      'image': _imgBurger,
+      'price': price,
+      'userEmail': selectedProduct.userEmail,
+      'userId': selectedProduct.userId,
+    };
+
+    return http
+        .put(
+            'https://fultter-product.firebaseio.com/products/${selectedProduct.id}.json',
+            body: json.encode(updateData))
+        .then((http.Response res) {
+      _isLoading = false;
+      final Product updateProduct = Product(
+        id: selectedProduct.id,
+        title: title,
+        description: description,
+        image: image,
+        price: price,
+        userEmail: selectedProduct.userEmail,
+        userId: selectedProduct.userId,
+      );
+      _products[selectedProductIndex] = updateProduct;
+      // _selProductIndex = null;
+      notifyListeners();
+    });
   }
 
   void deleteProduct() {
+    _isLoading = true;
+    final deleteProductId = selectedProduct.id;
     _products.removeAt(selectedProductIndex);
-    // _selProductIndex = null;
+    _selProductIndex = null;
     notifyListeners();
+    http
+        .delete(
+            'https://fultter-product.firebaseio.com/products/${deleteProductId}.json')
+        .then((http.Response res) {
+      _isLoading = false;
+
+      notifyListeners();
+    });
   }
 
   void fetchProducts() {
-    http.get(url).then((http.Response res) {
+    _isLoading = true;
+    notifyListeners();
+    http.get(_url).then((http.Response res) {
       final List<Product> fecthedProductList = [];
 
       final Map<String, dynamic> productListData = json.decode(res.body);
 
-      print(productListData);
+      if (productListData == null) {
+        _isLoading = false;
+        notifyListeners();
+        return;
+      }
 
       productListData.forEach((String productId, dynamic productData) {
         final Product product = Product(
@@ -114,6 +159,7 @@ class ProductsModel extends ConnectedProductsModel {
         fecthedProductList.add(product);
       });
       _products = fecthedProductList;
+      _isLoading = false;
       notifyListeners();
     });
   }
@@ -150,5 +196,11 @@ class ProductsModel extends ConnectedProductsModel {
 class UserModel extends ConnectedProductsModel {
   void login(String email, String password) {
     _authenticateUser = User(id: 'moosubb', email: email, password: password);
+  }
+}
+
+class UtilityModel extends ConnectedProductsModel {
+  bool get isLoading {
+    return _isLoading;
   }
 }
